@@ -34,9 +34,9 @@ jobs:
           TIMESTAMP=$(date -u +%Y%m%dT%H%M%S)
           FULL_VERSION="${BASE_VERSION}.${TIMESTAMP}"
           VERSION_CODE=$(date -u +%s)
-          sed -i "s/versionName = \".*\"/versionName = \"$FULL_VERSION\"/" app/build.gradle.kts
-          sed -i "s/versionCode = [0-9]*/versionCode = $VERSION_CODE/" app/build.gradle.kts
-          echo "Version set to $FULL_VERSION"
+          sed -i "s/versionName = .*/versionName = \"$FULL_VERSION\"/" app/build.gradle.kts
+          sed -i "s/versionCode = [0-9][0-9]*/versionCode = $VERSION_CODE/" app/build.gradle.kts
+          echo "Version set to $FULL_VERSION (code=$VERSION_CODE)"
 
       - name: Generate debug keystore
         run: |
