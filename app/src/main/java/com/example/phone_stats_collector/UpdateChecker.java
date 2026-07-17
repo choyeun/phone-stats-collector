@@ -94,31 +94,34 @@ public class UpdateChecker {
     }
 
     public static boolean isNewer(String current, String latest) {
-        int[] cur = parseVersion(current);
-        int[] lat = parseVersion(latest);
+        long[] cur = parseVersion(current);
+        long[] lat = parseVersion(latest);
         if (cur.length == 0 || lat.length == 0) return false;
 
         int len = Math.max(cur.length, lat.length);
         for (int i = 0; i < len; i++) {
-            int c = i < cur.length ? cur[i] : 0;
-            int l = i < lat.length ? lat[i] : 0;
+            long c = i < cur.length ? cur[i] : 0;
+            long l = i < lat.length ? lat[i] : 0;
             if (l > c) return true;
             if (l < c) return false;
         }
         return false;
     }
 
-    public static int[] parseVersion(String v) {
-        if (v == null || v.isEmpty()) return new int[0];
+    /** "1.3.5" → {1, 3, 5}. 비숫자 문자 제거 + Long 파싱 (타임스탬프 대응) */
+    public static long[] parseVersion(String v) {
+        if (v == null || v.isEmpty()) return new long[0];
         try {
             String[] parts = v.split("\\.");
-            int[] result = new int[parts.length];
+            long[] result = new long[parts.length];
             for (int i = 0; i < parts.length; i++) {
-                result[i] = Integer.parseInt(parts[i]);
+                // 숫자만 추출 (타임스탬프의 T 등 제거)
+                String numOnly = parts[i].replaceAll("[^0-9]", "");
+                result[i] = Long.parseLong(numOnly);
             }
             return result;
         } catch (NumberFormatException e) {
-            return new int[0];
+            return new long[0];
         }
     }
 }
