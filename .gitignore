@@ -1,0 +1,20 @@
+# built by Android tools
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# built by gradle
+build/
+.gradle/
+
+# local properties
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# keystore
+*.keystore

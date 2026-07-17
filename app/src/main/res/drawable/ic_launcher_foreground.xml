@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Background circle -->
+    <path
+        android:fillColor="#6c63ff"
+        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" />
+    <!-- Battery icon -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,45 L38,63 L70,63 L70,45 Z M70,42 L36,42 L36,66 L70,66 L70,42 Z"
+        android:strokeWidth="2"
+        android:strokeColor="#FFFFFF" />
+    <!-- Battery fill -->
+    <path
+        android:fillColor="#22c55e"
+        android:pathData="M40,47 L40,61 L56,61 L56,47 Z" />
+    <!-- Battery nub -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M72,49 L76,49 L76,53 L78,53 L78,55 L76,55 L76,59 L72,59 Z" />
+    <!-- Pulse line -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M58,50 L60,54 L62,48 L64,56 L66,50"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FFFFFF" />
+</vector>
