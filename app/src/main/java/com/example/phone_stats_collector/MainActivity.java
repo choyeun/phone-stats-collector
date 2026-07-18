@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final int REQUEST_BLUETOOTH = 1001;
+    private static final int REQUEST_USAGE_STATS = 1002;
 
     private TextView tvInfo;
     private Button btnRefresh;
@@ -52,31 +53,51 @@ public class MainActivity extends AppCompatActivity {
         btnRefresh.setOnClickListener(v -> collectStats());
         btnUpdateCheck.setOnClickListener(v -> checkForUpdate());
 
-        // 첫 실행 시 권한 체크
-        checkPermissions();
         collectStats();
     }
 
-    /** 필요 권한들을 한번에 체크 + 요청 */
-    private void checkPermissions() {
-        // 1. UsageStats 권한 (special permission — 설정으로 직접 이동)
-        if (!hasUsageStatsPermission()) {
-            showUsageStatsDialog();
-            return;
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 설정에서 돌아올 때마다 권한 체크 + 요청
+        checkUsageStatsPermission();
+        requestBluetoothPermission();
+    }
 
-        // 2. Bluetooth 권한 (Android 12+)
-        if (Build.VERSION.SDK_INT >= 31) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.BLUETOOTH_CONNECT},
-                        REQUEST_BLUETOOTH);
-            }
+    /** UsageStats: 특수 권한 — 설정 페이지 바로 열기 */
+    private void checkUsageStatsPermission() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return;
+        if (hasUsageStatsPermission()) return;
+
+        Toast.makeText(this, "📊 사용량 접근 권한이 필요합니다", Toast.LENGTH_LONG).show();
+        Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+        startActivityForResult(intent, REQUEST_USAGE_STATS);
+    }
+
+    /** Bluetooth: 일반 런타임 권한 */
+    private void requestBluetoothPermission() {
+        if (Build.VERSION.SDK_INT < 31) return;
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT)
+                == PackageManager.PERMISSION_GRANTED) return;
+
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.BLUETOOTH_CONNECT)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("🔵 블루투스 권한")
+                    .setMessage("블루투스 상태를 표시하려면 권한이 필요합니다")
+                    .setPositiveButton("허용", (d, w) ->
+                            ActivityCompat.requestPermissions(this,
+                                    new String[]{Manifest.permission.BLUETOOTH_CONNECT},
+                                    REQUEST_BLUETOOTH))
+                    .setNegativeButton("거부", null)
+                    .show();
+        } else {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.BLUETOOTH_CONNECT},
+                    REQUEST_BLUETOOTH);
         }
     }
 
-    /** UsageStats 권한 보유 여부 */
     private boolean hasUsageStatsPermission() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return true;
         try {
@@ -91,22 +112,6 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    /** UsageStats 권한 요청 다이얼로그 */
-    private void showUsageStatsDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("📊 사용량 접근 권한 필요")
-                .setMessage("최근 사용 앱 목록을 수집하려면 '사용량 접근' 권한이 필요합니다.\n\n" +
-                        "설정 → 사용량 접근 → BGMonitor 활성화 해주세요.")
-                .setPositiveButton("설정으로 이동", (d, w) -> {
-                    Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
-                    startActivity(intent);
-                    Toast.makeText(this, "권한 활성화 후 새로고침 해주세요", Toast.LENGTH_LONG).show();
-                })
-                .setNegativeButton("다음에", null)
-                .setCancelable(false)
-                .show();
     }
 
     private void collectStats() {
@@ -149,10 +154,9 @@ public class MainActivity extends AppCompatActivity {
             sb.append("━━━ 📊 최근 사용 앱 (1h) ━━━\n");
             sb.append(StatsCollector.getRecentApps(this)).append("\n\n");
 
-            // UsageStats 권한 상태 안내
             if (!hasUsageStatsPermission()) {
                 sb.append("⚠️ 사용량 접근 권한 꺼짐\n");
-                sb.append("   → 앱 상단 다이얼로그에서 설정으로 이동 가능\n");
+                sb.append("   → 자동으로 설정 페이지 열었음, 활성화 후 돌아오면 반영됨\n");
             }
 
             String info = sb.toString();
