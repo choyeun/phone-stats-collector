@@ -53,13 +53,15 @@ public class MainActivity extends AppCompatActivity {
         btnRefresh.setOnClickListener(v -> collectStats());
         btnUpdateCheck.setOnClickListener(v -> checkForUpdate());
 
+        // 권한 체크 (activity 준비 후)
+        checkUsageStatsPermission();
         collectStats();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        // 설정에서 돌아올 때마다 권한 체크 + 요청
+        // 설정에서 돌아오면 재체크
         checkUsageStatsPermission();
         requestBluetoothPermission();
     }
@@ -99,16 +101,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean hasUsageStatsPermission() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return true;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) return true;
         try {
-            android.app.usage.UsageStatsManager usm =
-                    (android.app.usage.UsageStatsManager) getSystemService(USAGE_STATS_SERVICE);
-            if (usm == null) return false;
-            long end = System.currentTimeMillis();
-            long start = end - 1000;
-            return usm.queryUsageStats(
-                    android.app.usage.UsageStatsManager.INTERVAL_DAILY,
-                    start, end) != null;
+            android.app.AppOpsManager aom = (android.app.AppOpsManager)
+                    getSystemService(android.content.Context.APP_OPS_SERVICE);
+            if (aom == null) return false;
+            int mode = aom.checkOpNoThrow(
+                    android.app.AppOpsManager.OPSTR_GET_USAGE_STATS,
+                    android.os.Process.myUid(), getPackageName());
+            return mode == android.app.AppOpsManager.MODE_ALLOWED;
         } catch (Exception e) {
             return false;
         }
