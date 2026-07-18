@@ -29,6 +29,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Update version from tag + timestamp
+        id: version
         run: |
           BASE_VERSION="${GITHUB_REF_NAME#v}"
           TIMESTAMP=$(date -u +%Y%m%dT%H%M%S)
@@ -37,6 +38,7 @@ jobs:
           sed -i "s/versionName = .*/versionName = \"$FULL_VERSION\"/" app/build.gradle.kts
           sed -i "s/versionCode = [0-9][0-9]*/versionCode = $VERSION_CODE/" app/build.gradle.kts
           echo "Version set to $FULL_VERSION (code=$VERSION_CODE)"
+          echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
 
       - name: Generate debug keystore
         run: |
@@ -50,10 +52,11 @@ jobs:
       - name: Create Release and Upload APK
         env:
           GH_TOKEN: ${{ github.token }}
+          FULL_VERSION: ${{ steps.version.outputs.full_version }}
         run: |
-          APK_NAME="BGMonitor-${{ github.ref_name }}.apk"
+          APK_NAME="BGMonitor-${FULL_VERSION}.apk"
           cp app/build/outputs/apk/debug/app-debug.apk "$APK_NAME"
           gh release create "${{ github.ref_name }}" \
-            --title "${{ github.ref_name }}" \
-            --generate-notes \
+            --title "v${FULL_VERSION}" \
+            --notes "버전: v${FULL_VERSION}" \
             "$APK_NAME"
