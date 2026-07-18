@@ -10,19 +10,19 @@ android {
         applicationId = "com.example.phone_stats_collector"
         minSdk = 24
         targetSdk = 34
-        versionCode = 2
-        versionName = "1.0.1.DEV"
+        versionCode = 3
+        versionName = "1.0.2.DEV"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("release") {
-            val keystoreFile = file("release.keystore")
+            val keystoreFile = file("bgmonitor.keystore")
             if (keystoreFile.exists()) {
                 storeFile = keystoreFile
                 storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "android"
-                keyAlias = System.getenv("KEY_ALIAS") ?: "phone_stats"
+                keyAlias = System.getenv("KEY_ALIAS") ?: "bgmonitor"
                 keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
             }
         }
@@ -31,13 +31,15 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            signingConfig = if (file("release.keystore").exists()) {
+            signingConfig = if (file("bgmonitor.keystore").exists()) {
                 signingConfigs.getByName("release")
             } else null
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {
-            // unsigned debug build
+            signingConfig = if (file("bgmonitor.keystore").exists()) {
+                signingConfigs.getByName("release")
+            } else null
         }
     }
     buildFeatures {

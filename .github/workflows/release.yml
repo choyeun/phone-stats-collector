@@ -40,13 +40,15 @@ jobs:
           echo "Version set to $FULL_VERSION (code=$VERSION_CODE)"
           echo "full_version=$FULL_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Generate debug keystore
+      - name: Decode persistent keystore
         run: |
-          keytool -genkey -v -keystore app/debug.keystore \
-            -alias debug -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass android -keypass android -dname "CN=,OU=,O=,L=,S=,C=" || true
+          base64 --decode <<< "${{ secrets.KEYSTORE_BASE64 }}" > app/bgmonitor.keystore
 
       - name: Build APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleDebug
 
       - name: Create Release and Upload APK
