@@ -21,6 +21,7 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -177,7 +178,34 @@ public class StatsCollector {
                     return sb.toString();
                 }
             }
-            // 시도 2: /proc/self/stat (현재 프로세스 전용, Android 14+)
+            // 시도 2: dumpsys cpuinfo (Android 14+ 호환)
+            String dumpsysOutput = execCommand("dumpsys cpuinfo");
+            if (dumpsysOutput != null && !dumpsysOutput.isEmpty()) {
+                for (String l : dumpsysOutput.split("\n")) {
+                    if (l.contains("TOTAL")) {
+                        sb.append("  ").append(l.trim()).append("\n");
+                        return sb.toString();
+                    }
+                }
+                // TOTAL 라인이 없으면 Load 라인이라도 표시
+                for (String l : dumpsysOutput.split("\n")) {
+                    if (l.contains("Load:")) {
+                        sb.append("  ").append(l.trim()).append("\n");
+                        break;
+                    }
+                }
+                // 상위 3개 프로세스 CPU 표시
+                int count = 0;
+                for (String l : dumpsysOutput.split("\n")) {
+                    l = l.trim();
+                    if (l.matches("^\\d+%.*") && !l.contains("TOTAL") && count < 3) {
+                        sb.append("  ").append(l).append("\n");
+                        count++;
+                    }
+                }
+                return sb.toString();
+            }
+            // 시도 3: /proc/self/stat (최후)
             line = readFirstLine("/proc/self/stat");
             if (line != null) {
                 String[] parts = line.trim().split("\\s+");
@@ -186,11 +214,10 @@ public class StatsCollector {
                     long stime = Long.parseLong(parts[14]);
                     long totalTicks = utime + stime;
                     sb.append(String.format(Locale.US, "  이 앱 CPU: %d ticks\n", totalTicks));
-                    sb.append("  (프로세스 전용, 시스템 전체 불가)");
                     return sb.toString();
                 }
             }
-            sb.append("  (Android 14+ 제한 — CPU 정보 불가)");
+            sb.append("  (CPU 정보 불가)");
         } catch (Exception e) {
             sb.append("  (CPU 정보 읽기 실패)");
         }
@@ -204,6 +231,25 @@ public class StatsCollector {
             String line = br.readLine();
             br.close();
             return line;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** Shell 명령어 실행 (실패 시 null) */
+    private static String execCommand(String cmd) {
+        try {
+            Process process = Runtime.getRuntime().exec(cmd);
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(process.getInputStream()));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append("\n");
+            }
+            br.close();
+            process.waitFor();
+            return sb.toString().trim();
         } catch (Exception e) {
             return null;
         }
