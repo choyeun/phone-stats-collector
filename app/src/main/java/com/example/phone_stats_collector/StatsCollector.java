@@ -157,15 +157,12 @@ public class StatsCollector {
         return sb.toString();
     }
 
-    /** CPU 사용률 (간단 추정) */
+    /** CPU 사용률 — /proc/stat → /proc/self/stat fallback (Android 14+ 대응) */
     public static String getCpuUsage() {
         StringBuilder sb = new StringBuilder();
         try {
-            // /proc/stat에서 CPU 라인 읽기
-            BufferedReader br = new BufferedReader(new FileReader("/proc/stat"));
-            String line = br.readLine();
-            br.close();
-
+            // 시도 1: /proc/stat (Android 13 이하)
+            String line = readFirstLine("/proc/stat");
             if (line != null && line.startsWith("cpu")) {
                 String[] parts = line.trim().split("\\s+");
                 if (parts.length >= 5) {
@@ -176,14 +173,40 @@ public class StatsCollector {
                     long total = user + nice + sys + idle;
                     long used = user + nice + sys;
                     float usage = (used * 100f) / total;
-                    sb.append(String.format(Locale.US, "  CPU: %.1f%%\n", usage));
-                    sb.append("  (system-wide, 대략적인 값)");
+                    sb.append(String.format(Locale.US, "  시스템 전체: %.1f%%\n", usage));
+                    return sb.toString();
                 }
             }
+            // 시도 2: /proc/self/stat (현재 프로세스 전용, Android 14+)
+            line = readFirstLine("/proc/self/stat");
+            if (line != null) {
+                String[] parts = line.trim().split("\\s+");
+                if (parts.length >= 14) {
+                    long utime = Long.parseLong(parts[13]);
+                    long stime = Long.parseLong(parts[14]);
+                    long totalTicks = utime + stime;
+                    sb.append(String.format(Locale.US, "  이 앱 CPU: %d ticks\n", totalTicks));
+                    sb.append("  (프로세스 전용, 시스템 전체 불가)");
+                    return sb.toString();
+                }
+            }
+            sb.append("  (Android 14+ 제한 — CPU 정보 불가)");
         } catch (Exception e) {
             sb.append("  (CPU 정보 읽기 실패)");
         }
         return sb.toString();
+    }
+
+    /** 파일 첫 줄 읽기 (실패 시 null) */
+    private static String readFirstLine(String path) {
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(path));
+            String line = br.readLine();
+            br.close();
+            return line;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /** 메모리 정보 */
