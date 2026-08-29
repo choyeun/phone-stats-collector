@@ -1,5 +1,6 @@
 plugins {
     id("com.android.application")
+    kotlin("android")
 }
 
 android {
@@ -10,8 +11,8 @@ android {
         applicationId = "com.example.phone_stats_collector"
         minSdk = 24
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.0.8.DEV"
+        versionCode = 9
+        versionName = "1.0.9.DEV"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -55,6 +56,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.google.android.material:material:1.13.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")

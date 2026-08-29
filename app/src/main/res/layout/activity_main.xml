@@ -25,15 +25,27 @@
             android:textSize="14sp" />
 
         <Button
+            android:id="@+id/btn_service"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:backgroundTint="#2d8a4e"
+            android:text="▶ 서비스 시작"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp" />
+
+        <Button
             android:id="@+id/btn_update"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_marginStart="4dp"
             android:backgroundTint="#25262b"
-            android:text="🔍 업데이트 확인"
+            android:text="🔍 업데이트"
             android:textColor="#e4e4e7"
-            android:textSize="14sp" />
+            android:textSize="12sp" />
     </LinearLayout>
 
     <ScrollView
