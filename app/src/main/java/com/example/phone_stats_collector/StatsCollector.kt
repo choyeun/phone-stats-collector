@@ -13,6 +13,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
 import android.os.StatFs
+import android.os.SystemClock
 import android.util.Log
 import java.io.BufferedReader
 import java.io.FileReader
@@ -385,24 +386,13 @@ object StatsCollector {
 
     /** 부팅 이후 경과 시간 */
     fun getUptime(): String {
-        val uptimeMs = System.currentTimeMillis() - getBootTime()
+        val uptimeMs = SystemClock.elapsedRealtime()
         val hours = uptimeMs / (3600 * 1000)
         val mins = (uptimeMs % (3600 * 1000)) / (60 * 1000)
         return String.format(Locale.US, "  %d시간 %d분", hours, mins)
     }
 
     private fun getBootTime(): Long {
-        try {
-            BufferedReader(FileReader("/proc/stat")).use { reader ->
-                var line: String?
-                while (reader.readLine().also { line = it } != null) {
-                    if (line!!.startsWith("btime")) {
-                        val bootSec = line!!.split("\\s+".toRegex())[1].toLong()
-                        return bootSec * 1000
-                    }
-                }
-            }
-        } catch (_: Exception) {}
-        return System.currentTimeMillis()
+        return System.currentTimeMillis() - SystemClock.elapsedRealtime()
     }
 }
