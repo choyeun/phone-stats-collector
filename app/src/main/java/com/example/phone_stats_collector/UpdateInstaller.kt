@@ -43,7 +43,7 @@ object UpdateInstaller {
                 return
             }
 
-            val totalSize = conn.contentLength
+            val totalSize = conn.contentLength.toLong()
             Log.d(TAG, "APK 다운로드 시작: $totalSize bytes")
 
             val inputStream: InputStream = conn.inputStream
@@ -51,14 +51,14 @@ object UpdateInstaller {
 
             val buffer = ByteArray(8192)
             var read: Int
-            var downloaded = 0
+            var downloaded: Long = 0
             var lastPercent = -1
 
             while (inputStream.read(buffer).also { read = it } != -1) {
                 fos.write(buffer, 0, read)
-                downloaded += read
+                downloaded += read.toLong()
                 if (totalSize > 0) {
-                    val percent = downloaded.toLong() * 100 / totalSize.toInt()
+                    val percent = (downloaded * 100 / totalSize).toInt()
                     if (percent != lastPercent) {
                         lastPercent = percent
                         callback?.onProgress(percent)

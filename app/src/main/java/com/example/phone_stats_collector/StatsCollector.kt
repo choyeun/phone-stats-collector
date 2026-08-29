@@ -148,7 +148,10 @@ object StatsCollector {
         val temp = battery.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, -1)
         val status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
         val health = battery.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)
+        val voltage = battery.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)
         val plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)
+        val tempC = temp / 10f
+        val voltageV = voltage / 1000f
 
         val pct = if (scale > 0) level * 100f / scale else level.toFloat()
         val statusStr = when (status) {
@@ -169,8 +172,8 @@ object StatsCollector {
   "percentage": $pct,
   "status": "$statusStr",
   "health": "$healthStr",
-  "temperature": ${temp / 10f},
-  "voltage": ${voltage / 1000f},
+  "temperature": $tempC,
+  "voltage": $voltageV,
   "plugged": $plugged
 }"""
     }

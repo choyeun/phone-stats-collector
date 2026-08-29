@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         btnService = findViewById(R.id.btn_service)
 
         tvInfo.movementMethod = ScrollingMovementMethod()
-        tvInfo.textIsSelectable = true
+        tvInfo.setTextIsSelectable(true)
 
         btnRefresh.setOnClickListener { collectStats() }
         btnUpdateCheck.setOnClickListener { checkForUpdate() }
