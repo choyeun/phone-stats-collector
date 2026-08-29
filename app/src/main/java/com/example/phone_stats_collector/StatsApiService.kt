@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -155,37 +154,67 @@ class StatsApiService : Service() {
 
     private fun buildFullStatsJson(): String {
         val info = JSONObject()
+        val ctx = this@StatsApiService
 
-        val ifilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        val battery = registerReceiver(null, ifilter)
-        if (battery != null) {
-            val b = JSONObject()
-            val level = battery.getIntExtra(android.os.BatteryManager.EXTRA_LEVEL, -1)
-            val scale = battery.getIntExtra(android.os.BatteryManager.EXTRA_SCALE, -1)
-            b.put("percentage", if (scale > 0) level * 100.0 / scale else level)
-            b.put("temperature", battery.getIntExtra(android.os.BatteryManager.EXTRA_TEMPERATURE, 0) / 10.0)
-            b.put("voltage", battery.getIntExtra(android.os.BatteryManager.EXTRA_VOLTAGE, 0) / 1000.0)
-            info.put("battery", b)
-        }
+        // 배터리
+        info.put("battery", JSONObject(StatsCollector.getBatteryJson(ctx)))
 
+        // 기기
         val d = JSONObject()
         d.put("model", Build.MODEL)
         d.put("manufacturer", Build.MANUFACTURER)
         d.put("android_version", Build.VERSION.RELEASE)
         d.put("api_level", Build.VERSION.SDK_INT)
-        d.put("uptime", StatsCollector.getUptime())
-        d.put("time", StatsCollector.getCurrentTime())
+        d.put("uptime", StatsCollector.getUptime().trim())
+        d.put("time", StatsCollector.getCurrentTime().trim())
+        d.put("boot_time", StatsCollector.getUptime().trim())
         info.put("device", d)
 
-        val am = getSystemService(ACTIVITY_SERVICE) as? android.app.ActivityManager
+        // CPU
+        info.put("cpu", StatsCollector.getCpuUsage().trim())
+
+        // 메모리
+        val am = ctx.getSystemService(ACTIVITY_SERVICE) as? android.app.ActivityManager
         if (am != null) {
             val mi = android.app.ActivityManager.MemoryInfo()
             am.getMemoryInfo(mi)
             val m = JSONObject()
             m.put("total_mb", mi.totalMem / (1024 * 1024))
             m.put("available_mb", mi.availMem / (1024 * 1024))
+            m.put("used_mb", (mi.totalMem - mi.availMem) / (1024 * 1024))
             info.put("memory", m)
         }
+
+        // 저장공간
+        info.put("storage", StatsCollector.getStorageInfo().trim())
+
+        // 네트워크
+        val net = JSONObject()
+        net.put("connection", StatsCollector.getNetworkInfo(ctx).trim())
+        net.put("wifi", StatsCollector.getWifiSignal(ctx).trim())
+        info.put("network", net)
+
+        // 블루투스
+        info.put("bluetooth", StatsCollector.getBluetoothStatus().trim())
+
+        // 화면
+        info.put("screen", StatsCollector.getScreenStatus(ctx).trim())
+
+        // 실행 중인 서비스
+        val srv = JSONObject()
+        srv.put("services", StatsCollector.getRunningServices(ctx))
+        info.put("running", srv)
+
+        // 최근 사용 앱
+        val recentStr = StatsCollector.getRecentApps(ctx)
+        val appsArr = JSONArray()
+        for (line in recentStr.split("\n")) {
+            val trimmed = line.trim()
+            if (trimmed.isNotEmpty() && !trimmed.startsWith("(") && !trimmed.startsWith("기록") && !trimmed.startsWith("API")) {
+                appsArr.put(trimmed.removePrefix("● "))
+            }
+        }
+        info.put("recent_apps", appsArr)
 
         return info.toString(2)
     }

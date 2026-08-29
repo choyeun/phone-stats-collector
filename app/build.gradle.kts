@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.phone_stats_collector"
         minSdk = 24
         targetSdk = 34
-        versionCode = 10
-        versionName = "1.0.10.DEV"
+        versionCode = 11
+        versionName = "1.0.11.DEV"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
