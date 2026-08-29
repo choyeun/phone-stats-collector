@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.phone_stats_collector"
         minSdk = 24
         targetSdk = 34
-        versionCode = 9
-        versionName = "1.0.9.DEV"
+        versionCode = 10
+        versionName = "1.0.10.DEV"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,6 +49,9 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 }
 
