@@ -115,11 +115,13 @@ class StatsApiService : Service() {
                     )
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "API 에러: ${e.message}", e)
-                newFixedLengthResponse(
-                    Response.Status.INTERNAL_ERROR, "application/json",
-                    """{"error":"${e.message?.replace("\"", "'") ?: "unknown"}""""
-                )
+                            Log.e(TAG, "API 에러: ${e.message}", e)
+                            val errJson = JSONObject()
+                            errJson.put("error", e.message ?: "unknown")
+                            newFixedLengthResponse(
+                                Response.Status.INTERNAL_ERROR, "application/json",
+                                errJson.toString()
+                            )
             }
         }
 

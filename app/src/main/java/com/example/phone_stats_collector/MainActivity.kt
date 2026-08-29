@@ -235,7 +235,7 @@ class MainActivity : AppCompatActivity() {
                     .setMessage(String.format(Locale.US,
                         "현재: v%s → 최신: v%s\n크기: %s\n\n%s",
                         currentVer, info.latestVersion, sizeStr, info.releaseBody ?: ""))
-                    .setPositiveButton("다운로드") { _, _ -> downloadUpdate(info.downloadUrl) }
+                    .setPositiveButton("다운로드") { _, _ -> downloadUpdate(info.downloadUrl!!) }
                     .setNegativeButton("취소", null)
                     .show()
             }
