@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity() {
         checkUsageStatsPermission()
         collectStats()
         updateServiceButton()
+        autoStartService()
     }
 
     override fun onResume() {
@@ -268,6 +269,20 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 })
+        }
+    }
+
+    private fun autoStartService() {
+        if (!StatsApiService.isRunning) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(
+                        this,
+                        Manifest.permission.POST_NOTIFICATIONS
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) return
+            }
+            val intent = Intent(this, StatsApiService::class.java)
+            ContextCompat.startForegroundService(this, intent)
         }
     }
 }
